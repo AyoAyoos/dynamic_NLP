@@ -78,7 +78,7 @@ const DynamicAQ = () => {
             aiText: `(MOCK AI OUTPUT)\n\nHello! I see you scored ${scores.total}. Your profile as a '${scores.label}' is interesting. \n\nYour highest trait is Ownership (${scores.ownership}), meaning you take responsibility. However, your Control score is ${scores.control}, suggesting you sometimes feel helpless to change the outcome.`
         });
         setLoading(false);
-    }, 1000)
+    }, 1000);
   };
 
   return (
