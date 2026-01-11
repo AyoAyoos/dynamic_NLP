@@ -1,14 +1,11 @@
-# --- General ---
-.DS_Store
-.vscode/
-*.log
-
 # --- Python Backend ---
 backend/venv/
-backend/__pycache__/
-backend/*.pyc
-backend/.env
-backend/.pytest_cache/
+backend/.venv/
+.venv
+venv/
+__pycache__/
+*.pyc
+.env
 
 # --- React Frontend ---
 aq-experiment/node_modules/
@@ -17,5 +14,9 @@ aq-experiment/.env
 aq-experiment/.env.local
 aq-experiment/coverage/
 
-# --- System specific ---
+# --- Editor & System ---
+.vscode/
+.cursor
+.idea/
+.DS_Store
 Thumbs.db

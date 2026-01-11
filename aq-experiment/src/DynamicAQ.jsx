@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 const DynamicAQ = () => {
   // 1. STATE
   const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null); // Changed to null to store object
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // 2. DATA
+  // 2. DATA (Questions)
   const questions = [
     { id: 1, q: "1. When faced with a high-pressure situation, do you prioritize your tasks and decisions?", options: ["Never prioritize", "Rarely", "Sometimes", "Often prioritize", "Always prioritize"] },
     { id: 2, q: "2. What is your approach when you face a task that initially seems impossible?", options: ["Ignore the challenge", "Feel overwhelmed", "Think before acting", "Try despite doubts", "Accept the challenge"] },
@@ -38,47 +39,40 @@ const DynamicAQ = () => {
     setAnswers({ ...answers, [`q${questionId}`]: optionIndex + 1 });
   };
 
-  // 4. CALCULATE SCORES (The Math Logic)
-  const calculateScores = () => {
-    const getScore = (id) => answers[`q${id}`] || 0;
-
-    // Control: Q1-3
-    const control = [1,2,3].reduce((acc, id) => acc + getScore(id), 0);
-    
-    // Ownership: Q4-11
-    const ownership = [4,5,6,7,8,9,10,11].reduce((acc, id) => acc + getScore(id), 0);
-    
-    // Reach: Q12-16
-    const reach = [12,13,14,15,16].reduce((acc, id) => acc + getScore(id), 0);
-    
-    // Endurance: Q17-21
-    const endurance = [17,18,19,20,21].reduce((acc, id) => acc + getScore(id), 0);
-    
-    // Attitude: Q22-23
-    const attitude = [22,23].reduce((acc, id) => acc + getScore(id), 0);
-
-    const total = (control + ownership + reach + endurance + attitude) * 2;
-    
-    let label = "Quitter";
-    if (total >= 180) label = "Climber";
-    else if (total >= 160) label = "Moderate Climber";
-    else if (total >= 140) label = "Camper";
-    else if (total >= 120) label = "Moderate Camper";
-
-    return { control, ownership, reach, endurance, attitude, total, label };
-  };
-
-  const handleSubmit = () => {
+  // 4. SUBMIT TO PYTHON BACKEND
+  const handleSubmit = async () => {
     setLoading(true);
-    const scores = calculateScores();
-    
-    setTimeout(() => {
-        setResult({
-            scores: scores,
-            aiText: `(MOCK AI OUTPUT)\n\nHello! I see you scored ${scores.total}. Your profile as a '${scores.label}' is interesting. \n\nYour highest trait is Ownership (${scores.ownership}), meaning you take responsibility. However, your Control score is ${scores.control}, suggesting you sometimes feel helpless to change the outcome.`
+    setError(null);
+    setResult(null);
+
+    try {
+        // CALL THE PYTHON API
+        const response = await fetch("http://127.0.0.1:8000/analyze", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ responses: answers }),
         });
+
+        if (!response.ok) {
+            throw new Error("Failed to connect to the brain.");
+        }
+
+        const data = await response.json();
+        
+        // SAVE THE PYTHON RESPONSE
+        setResult({
+            scores: data.scores,
+            aiText: data.ai_analysis
+        });
+
+    } catch (err) {
+        console.error(err);
+        setError("Could not connect to the Python server. Is it running?");
+    } finally {
         setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -112,8 +106,9 @@ const DynamicAQ = () => {
       </div>
 
       <div style={{ textAlign: "center", marginTop: "40px" }}>
+          {error && <p style={{color: "red"}}>{error}</p>}
           <button onClick={handleSubmit} disabled={loading} style={{ padding: "16px 40px", fontSize: "18px", backgroundColor: "#1e40af", color: "white", border: "none", borderRadius: "50px", cursor: "pointer", fontWeight: "bold" }}>
-            {loading ? "Calculating..." : "Submit & Analyze"}
+            {loading ? "Asking Python..." : "Submit & Analyze"}
           </button>
       </div>
 
@@ -121,7 +116,7 @@ const DynamicAQ = () => {
       {result && (
         <div style={{ marginTop: "40px" }}>
             
-            {/* 1. SCORECARD GRID */}
+            {/* SCORECARD GRID (Data from Python) */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "15px", marginBottom: "30px" }}>
                 <ScoreBox title="Control" score={result.scores.control} max={15} color="#ef4444" />
                 <ScoreBox title="Ownership" score={result.scores.ownership} max={40} color="#f97316" />
@@ -135,7 +130,7 @@ const DynamicAQ = () => {
                 </div>
             </div>
 
-            {/* 2. AI ANALYSIS */}
+            {/* AI ANALYSIS */}
             <div style={{ padding: "30px", backgroundColor: "#eff6ff", border: "2px solid #3b82f6", borderRadius: "12px", color: "#1e3a8a" }}>
                 <h2 style={{marginTop: 0, borderBottom: "1px solid #bfdbfe", paddingBottom: "10px"}}>Psychological Analysis</h2>
                 <p style={{ fontSize: "18px", lineHeight: "1.7", whiteSpace: "pre-wrap" }}>{result.aiText}</p>
@@ -146,7 +141,6 @@ const DynamicAQ = () => {
   );
 };
 
-// Helper Component for the little score boxes
 const ScoreBox = ({ title, score, max, color }) => (
     <div style={{ background: "white", padding: "15px", borderRadius: "10px", textAlign: "center", borderTop: `4px solid ${color}`, boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
         <div style={{ fontSize: "12px", color: "#666", textTransform: "uppercase", letterSpacing: "1px" }}>{title}</div>
