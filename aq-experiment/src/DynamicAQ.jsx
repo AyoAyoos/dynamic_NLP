@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 
 const DynamicAQ = () => {
   // 1. STATE
-  
+  const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(null); // Changed to null to store object
+  const [loading, setLoading] = useState(false);
 
   // 2. DATA
   const questions = [
