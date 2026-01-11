@@ -1,0 +1,21 @@
+# --- General ---
+.DS_Store
+.vscode/
+*.log
+
+# --- Python Backend ---
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/.pytest_cache/
+
+# --- React Frontend ---
+aq-experiment/node_modules/
+aq-experiment/dist/
+aq-experiment/.env
+aq-experiment/.env.local
+aq-experiment/coverage/
+
+# --- System specific ---
+Thumbs.db
